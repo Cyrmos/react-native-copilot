@@ -1,6 +1,6 @@
 // @flow
 import React, { Component } from 'react';
-import { Animated, Easing, View, NativeModules, Modal, StatusBar, Platform } from 'react-native';
+import { Animated, Easing, View, NativeModules, Modal, StatusBar, Platform, Image } from 'react-native';
 import Tooltip from './Tooltip';
 import StepNumber from './StepNumber';
 import styles, { MARGIN, ARROW_SIZE, STEP_NUMBER_DIAMETER, STEP_NUMBER_RADIUS } from './style';
@@ -40,6 +40,8 @@ type State = {
 };
 
 const noop = () => {};
+
+const avatarBackground = [ '#FFD2DE', '#E9CFFE', '#DCECFF' ];
 
 class CopilotModal extends Component<Props, State> {
 	static defaultProps = {
@@ -140,34 +142,39 @@ class CopilotModal extends Component<Props, State> {
 		const tooltip = {};
 		const arrow = {};
 
-		if (verticalPosition === 'bottom') {
-			tooltip.top = obj.top + obj.height + MARGIN;
-			arrow.borderBottomColor = '#fff';
-			arrow.top = tooltip.top - ARROW_SIZE * 2;
-		}
-		else {
-			tooltip.bottom = layout.height - (obj.top - MARGIN);
-			arrow.borderTopColor = '#fff';
-			arrow.bottom = tooltip.bottom - ARROW_SIZE * 2;
-		}
+		// if (verticalPosition === 'bottom') {
+		// 	tooltip.top = obj.top + obj.height + MARGIN;
+		// 	arrow.borderBottomColor = '#fff';
+		// 	arrow.top = tooltip.top - ARROW_SIZE * 2;
+		// }
+		// else {
+		// 	tooltip.bottom = layout.height - (obj.top - MARGIN);
+		// 	arrow.borderTopColor = '#fff';
+		// 	arrow.bottom = tooltip.bottom - ARROW_SIZE * 2;
+		// }
 
-		if (horizontalPosition === 'left') {
-			tooltip.right = Math.max(layout.width - (obj.left + obj.width), 0);
-			tooltip.right = tooltip.right === 0 ? tooltip.right + MARGIN : tooltip.right;
-			tooltip.maxWidth = layout.width - tooltip.right - MARGIN;
-			arrow.right = tooltip.right + MARGIN;
-		}
-		else {
-			tooltip.left = Math.max(obj.left, 0);
-			tooltip.left = tooltip.left === 0 ? tooltip.left + MARGIN : tooltip.left;
+		// if (horizontalPosition === 'left') {
+		// 	tooltip.right = Math.max(layout.width - (obj.left + obj.width), 0);
+		// 	tooltip.right = tooltip.right === 0 ? tooltip.right + MARGIN : tooltip.right;
+		// 	tooltip.maxWidth = layout.width - tooltip.right - MARGIN;
+		// 	arrow.right = tooltip.right + MARGIN;
+		// }
+		// else {
+		// 	tooltip.left = Math.max(obj.left, 0);
+		// 	tooltip.left = tooltip.left === 0 ? tooltip.left + MARGIN : tooltip.left;
+		// 	tooltip.maxWidth = layout.width - tooltip.left - MARGIN;
+		// 	arrow.left = tooltip.left + MARGIN;
+		// }
+
+		if (this.props.currentStep.options.reverse === true) {
+			tooltip.left = 15;
 			tooltip.maxWidth = layout.width - tooltip.left - MARGIN;
-			arrow.left = tooltip.left + MARGIN;
 		}
-
-		delete tooltip.top;
-		delete tooltip.left;
+		else {
+			tooltip.right = 15;
+			tooltip.maxWidth = layout.width - tooltip.right - MARGIN;
+		}
 		tooltip.bottom = 15;
-		tooltip.right = 15;
 
 		const animate = {
 			top: obj.top,
@@ -261,27 +268,34 @@ class CopilotModal extends Component<Props, State> {
 
 	renderTooltip () {
 		const { tooltipComponent: TooltipComponent, stepNumberComponent: StepNumberComponent } = this.props;
-
 		return [
-			<Animated.View
-				key="stepNumber"
-				style={[
-					styles.stepNumberContainer,
-					{
-						left: this.state.animatedValues.stepNumberLeft,
-						top: Animated.add(this.state.animatedValues.top, -STEP_NUMBER_RADIUS)
-					}
-				]}
-			>
-				<StepNumberComponent
-					isFirstStep={this.props.isFirstStep}
-					isLastStep={this.props.isLastStep}
-					currentStep={this.props.currentStep}
-					currentStepNumber={this.props.currentStepNumber}
-				/>
-			</Animated.View>,
-			// <Animated.View key="arrow" style={[styles.arrow, this.state.arrow]} />,
+			// <Animated.View
+			// 	key="stepNumber"
+			// 	style={[
+			// 		styles.stepNumberContainer,
+			// 		{
+			// 			left: this.state.animatedValues.stepNumberLeft,
+			// 			top: Animated.add(this.state.animatedValues.top, -STEP_NUMBER_RADIUS)
+			// 		}
+			// 	]}
+			// >
+			// 	<StepNumberComponent
+			// 		isFirstStep={this.props.isFirstStep}
+			// 		isLastStep={this.props.isLastStep}
+			// 		currentStep={this.props.currentStep}
+			// 		currentStepNumber={this.props.currentStepNumber}
+			// 	/>
+			// </Animated.View>,
+			// <Animated.View key="arrow" style={[styles.arrow, this.state.arrow]} />
 			<Animated.View key="tooltip" style={[ styles.tooltip, this.props.tooltipStyle, this.state.tooltip ]}>
+				<View style={[ styles.stepNumberContainer, { top: -15, left: -15 } ]}>
+					<StepNumberComponent
+						isFirstStep={this.props.isFirstStep}
+						isLastStep={this.props.isLastStep}
+						currentStep={this.props.currentStep}
+						currentStepNumber={this.props.currentStepNumber}
+					/>
+				</View>
 				<TooltipComponent
 					isFirstStep={this.props.isFirstStep}
 					isLastStep={this.props.isLastStep}
@@ -291,6 +305,22 @@ class CopilotModal extends Component<Props, State> {
 					handleStop={this.handleStop}
 					labels={this.props.labels}
 				/>
+				<View
+					style={[
+						styles.avatar,
+						{
+							backgroundColor:
+								avatarBackground[(this.props.currentStepNumber - 1) % avatarBackground.length]
+						}
+					]}
+				>
+					<Image
+						style={styles.avatarImage}
+						resizeMode={'contain'}
+						resizeMethod={'resize'}
+						source={this.props.currentStep.options.avatarImage}
+					/>
+				</View>
 			</Animated.View>
 		];
 	}
